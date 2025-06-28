@@ -4,7 +4,6 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
-# Obtener configuración de la base de datos desde variables de entorno
 POSTGRES_USER = os.getenv("POSTGRES_USER", "sushi")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "sushi")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "sushi")
@@ -35,7 +34,6 @@ class User(Base):
 
 Table.users = relationship("User", back_populates="table")
 
-# Crear tablas
 Base.metadata.create_all(bind=engine)
 
 
