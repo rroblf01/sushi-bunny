@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0">
+    <meta name="description" content="Conejito de Sushi - Crear y gestionar mesas">
+    <title>Conejito de sushi - Crear mesa</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <h1>Bienvenido a Conejito de Sushi</h1>
+        <form id="table-form">
+            <input type="text" id="table-name" placeholder="Nombre de la mesa" autocomplete="off" required>
+            <button type="submit" id="create-table">Crear nueva mesa</button>
+        </form>
+    </div>
+
+    <script>
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const viewport = document.querySelector('meta[name=viewport]');
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+
+        document.getElementById("table-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const tableName = document.getElementById("table-name").value.trim();
+            const button = document.getElementById("create-table");
+            
+            if (!tableName) {
+                alert("Por favor, ingresa un nombre para la mesa.");
+                document.getElementById("table-name").focus();
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Creando mesa...";
+
+            try {
+                console.log("Creando mesa con nombre:", tableName);
+                const response = await fetch("/mesa", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ name: tableName }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Mesa creada:", data);
+                    window.location.href = `/mesa/${data.table_id}`;
+                } else {
+                    console.error("Error al crear la mesa");
+                    alert("Error al crear la mesa. Por favor, inténtalo de nuevo.");
+                }
+            } catch (error) {
+                console.error("Error en la solicitud:", error);
+                alert("Error de conexión. Por favor, verifica tu conexión a internet.");
+            } finally {
+                button.disabled = false;
+                button.textContent = "Crear nueva mesa";
+            }
+        });
+
+        if ('ontouchstart' in window) {
+            document.body.classList.add('touch-device');
+        }
+    </script>
+</body>
+</html>

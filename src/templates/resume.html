@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0">
+    <meta name="description" content="Resumen de la mesa {{ table.name }} - Conejito de Sushi">
+    <title>Resumen - {{ table.name }} - Conejito de Sushi</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/resume.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <h1>Resumen de la mesa: {{ table.name }}</h1>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>📊 Estadísticas</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-participants">0</div>
+                    <div class="stat-label">Participantes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-sushi">0</div>
+                    <div class="stat-label">Total sushi consumido</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="average-sushi">0</div>
+                    <div class="stat-label">Promedio por persona</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🍣 Ranking de participantes</h2>
+            <div class="table-container">
+                <table id="participants-table">
+                    <thead>
+                        <tr>
+                            <th>Posición</th>
+                            <th>Nombre</th>
+                            <th>Piezas de sushi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>-</td>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.sushi_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const viewport = document.querySelector('meta[name=viewport]');
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+
+        function updateStats(users) {
+            const totalParticipants = users.length;
+            const totalSushi = users.reduce((sum, user) => sum + user.sushi_count, 0);
+            const averageSushi = totalParticipants > 0 ? (totalSushi / totalParticipants).toFixed(1) : 0;
+
+            document.getElementById('total-participants').textContent = totalParticipants;
+            document.getElementById('total-sushi').textContent = totalSushi;
+            document.getElementById('average-sushi').textContent = averageSushi;
+        }
+
+        function updateTable(users) {
+            const sortedUsers = [...users].sort((a, b) => b.sushi_count - a.sushi_count);
+            
+            const tbody = document.querySelector("#participants-table tbody");
+            tbody.innerHTML = "";
+
+            if (sortedUsers.length > 0) {
+                sortedUsers.forEach((user, index) => {
+                    const row = document.createElement("tr");
+                    const position = index + 1;
+                    let positionEmoji = '';
+                    
+                    if (position === 1) positionEmoji = '🥇';
+                    else if (position === 2) positionEmoji = '🥈';
+                    else if (position === 3) positionEmoji = '🥉';
+                    else positionEmoji = `${position}°`;
+
+                    row.innerHTML = `
+                        <td class="position-cell">${positionEmoji}</td>
+                        <td class="name-cell">${user.name}</td>
+                        <td class="sushi-cell">${user.sushi_count}</td>
+                    `;
+                    
+                    if (position <= 3) {
+                        row.classList.add(`rank-${position}`);
+                    }
+                    
+                    tbody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td colspan="3" style="text-align: center; color: #666; padding: 30px;">
+                        No hay participantes aún
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        if ('ontouchstart' in window) {
+            document.body.classList.add('touch-device');
+        }
+
+        // Inicializar stats con datos existentes
+        window.addEventListener('DOMContentLoaded', () => {
+            const users = [
+                {% for user in users %}
+                { name: "{{ user.name }}", sushi_count: {{ user.sushi_count }} }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+            updateStats(users);
+            updateTable(users);
+        });
+    </script>
+</body>
+</html>

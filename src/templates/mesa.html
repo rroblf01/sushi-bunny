@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0">
+    <meta name="description" content="Mesa {{ table.name }} - Conejito de Sushi">
+    <title>Mesa {{ table.name }} - Conejito de Sushi</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/mesa.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <h1>Mesa: {{ table.name }}</h1>
+        
+        <div class="section">
+            <h2>Tu información</h2>
+            <form id="join-form">
+                <label for="name">Tu nombre:</label>
+                <input type="text" id="name" name="name" placeholder="Ingresa tu nombre" required autocomplete="name">
+                <button type="submit" id="change-name-btn">Cambiar nombre</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Participantes</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Piezas de sushi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.sushi_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <form id="eat-form">
+                <button type="submit" id="eat-btn" class="eat-button">🍣 Comer una pieza de sushi</button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const viewport = document.querySelector('meta[name=viewport]');
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+
+        const socket = new WebSocket(`ws://${window.location.host}/ws/{{ table.id }}`);
+        let userId = null;
+        let isConnected = false;
+
+        const changeNameBtn = document.getElementById('change-name-btn');
+        const eatBtn = document.getElementById('eat-btn');
+
+
+        socket.onopen = () => {
+            console.log('Conexión WebSocket establecida');
+            isConnected = true;
+            socket.send(JSON.stringify({ action: "join", payload: { name: "Generico" } }));
+        };
+
+        socket.onclose = () => {
+            console.log('Conexión WebSocket cerrada');
+            isConnected = false;
+        };
+
+        socket.onerror = (error) => {
+            console.error('Error en WebSocket:', error);
+            isConnected = false;
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Estado actualizado:", data);
+
+            const tbody = document.querySelector("table tbody");
+            tbody.innerHTML = "";
+
+            if (data.users && data.users.length > 0) {
+                data.users.forEach(user => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.sushi_count}</td>
+                    `;
+                    tbody.appendChild(row);
+
+                    if (user.name === "Generico" && !userId) {
+                        userId = user.id;
+                    }
+                });
+            } else {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td colspan="2" style="text-align: center; color: #666;">
+                        No hay participantes aún
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+        };
+
+        document.getElementById('join-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            
+            if (!name) {
+                alert('Por favor, ingresa un nombre válido.');
+                return;
+            }
+
+            if (!isConnected) {
+                alert('No hay conexión. Intenta de nuevo.');
+                return;
+            }
+
+            if (userId) {
+                changeNameBtn.disabled = true;
+                changeNameBtn.textContent = 'Cambiando...';
+                
+                socket.send(JSON.stringify({ 
+                    action: "rename", 
+                    payload: { user_id: userId, new_name: name } 
+                }));
+                
+                setTimeout(() => {
+                    changeNameBtn.disabled = false;
+                    changeNameBtn.textContent = 'Cambiar nombre';
+                    document.getElementById('name').value = '';
+                }, 1000);
+            }
+        });
+
+        document.getElementById('eat-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!isConnected) {
+                alert('No hay conexión. Intenta de nuevo.');
+                return;
+            }
+
+            if (userId) {
+                eatBtn.disabled = true;
+                eatBtn.textContent = '🍣 Comiendo...';
+                
+                socket.send(JSON.stringify({ 
+                    action: "eat", 
+                    payload: { user_id: userId } 
+                }));
+                
+                setTimeout(() => {
+                    eatBtn.disabled = false;
+                    eatBtn.textContent = '🍣 Comer una pieza de sushi';
+                }, 500);
+            }
+        });
+
+        if ('ontouchstart' in window) {
+            document.body.classList.add('touch-device');
+        }
+    </script>
+</body>
+</html>

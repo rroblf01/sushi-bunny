@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0">
+    <meta name="description" content="Lista de mesas - Conejito de Sushi">
+    <title>Lista de Mesas - Conejito de Sushi</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/tables.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <h1>Lista de Mesas</h1>
+        
+        {% if tables %}
+            <div class="tables-list">
+                {% for table in tables %}
+                <div class="table-item">
+                    <a href="/resume/{{ table.id }}" class="table-link">
+                        <div class="table-info">
+                            <h3>{{ table.name }}</h3>
+                            <span class="table-arrow">→</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No hay mesas creadas aún.</p>
+                <a href="/" class="btn-link">Crear primera mesa</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const viewport = document.querySelector('meta[name=viewport]');
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+
+        if ('ontouchstart' in window) {
+            document.body.classList.add('touch-device');
+        }
+    </script>
+</body>
+</html>
