@@ -59,7 +59,8 @@
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
         }
 
-        const socket = new WebSocket(`ws://${window.location.host}/ws/{{ table.id }}`);
+        const suffixWs = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socket = new WebSocket(`${suffixWs}${window.location.host}/ws/{{ table.id }}`);
         let userId = null;
         let isConnected = false;
 
@@ -68,13 +69,11 @@
 
 
         socket.onopen = () => {
-            console.log('Conexión WebSocket establecida');
             isConnected = true;
             socket.send(JSON.stringify({ action: "join", payload: { name: "Generico" } }));
         };
 
         socket.onclose = () => {
-            console.log('Conexión WebSocket cerrada');
             isConnected = false;
         };
 
@@ -85,7 +84,6 @@
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log("Estado actualizado:", data);
 
             const tbody = document.querySelector("table tbody");
             tbody.innerHTML = "";

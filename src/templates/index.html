@@ -40,7 +40,6 @@
             button.textContent = "Creando mesa...";
 
             try {
-                console.log("Creando mesa con nombre:", tableName);
                 const response = await fetch("/mesa", {
                     method: "POST",
                     headers: {
@@ -51,7 +50,6 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("Mesa creada:", data);
                     window.location.href = `/mesa/${data.table_id}`;
                 } else {
                     console.error("Error al crear la mesa");

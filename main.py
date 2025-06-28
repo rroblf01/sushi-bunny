@@ -121,4 +121,32 @@ def list_tables_view(request: Request, db: Session = Depends(get_db)):
     )
 
 
+@app.delete("/mesa/{table_id}")
+def delete_table(table_id: str, db: Session = Depends(get_db)):
+    table = db.query(Table).filter(Table.id == table_id).first()
+    if not table:
+        raise HTTPException(status_code=404, detail="Mesa no encontrada")
+
+    db.delete(table)
+    db.commit()
+
+    # Remove all users associated with the table
+    users = db.query(User).filter(User.table_id == table_id).all()
+    for user in users:
+        db.delete(user)
+
+    db.commit()
+
+    return {"detail": "Mesa eliminada con éxito"}
+
+
+@app.delete("/all-mesas")
+def delete_all_tables(db: Session = Depends(get_db)):
+    tables = db.query(Table).all()
+    for table in tables:
+        db.delete(table)
+    db.commit()
+    return {"detail": "Todas las mesas eliminadas con éxito"}
+
+
 app.mount("/", StaticFiles(directory="src/static", html=True), name="static")
