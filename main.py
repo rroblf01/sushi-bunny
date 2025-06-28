@@ -7,9 +7,9 @@ from fastapi.requests import Request
 from sqlalchemy.orm import Session
 import uuid
 from fastapi.websockets import WebSocketDisconnect
-from .models import Table, User, get_db
-from .schemas import TableCreate
-from .utils import broadcast_table_state
+from src.models import Table, User, get_db
+from src.schemas import TableCreate
+from src.utils import broadcast_table_state
 
 app = FastAPI()
 
