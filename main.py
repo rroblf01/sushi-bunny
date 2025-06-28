@@ -13,7 +13,7 @@ from src.utils import broadcast_table_state
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="src/templates")
 
 
 active_connections = {}
@@ -121,4 +121,4 @@ def list_tables_view(request: Request, db: Session = Depends(get_db)):
     )
 
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", StaticFiles(directory="src/static", html=True), name="static")
